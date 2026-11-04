@@ -179,7 +179,7 @@
         <div class="bg-black/90 border-2 border-purple-900/80 rounded-2xl p-2.5 mb-3 grid grid-cols-2 sm:grid-cols-5 gap-2 shadow-inner">
             <div class="bg-slate-950/80 border border-purple-900/50 rounded-xl p-2 text-center">
                 <div class="text-[10px] text-purple-300 font-bold mb-0.5">所持メダル (CREDIT)</div>
-                <div id="credit-display" class="font-digital text-xl sm:text-2xl text-emerald-400 font-black">1000</div>
+                <div id="credit-display" class="font-digital text-xl sm:text-2xl text-emerald-400 font-black">100</div>
             </div>
             <div class="bg-slate-950/80 border border-purple-900/50 rounded-xl p-2 text-center">
                 <div class="text-[10px] text-purple-300 font-bold mb-0.5">BET数</div>
@@ -511,8 +511,8 @@
 
                 this.audio = new ArcadeAudio();
 
-                // Financial State
-                this.credits = 1000;
+                // Initial Financial State - 100 COINS
+                this.credits = 100;
                 this.currentBet = 0;
                 this.lastWin = 0;
                 this.loanTaken = false;
@@ -542,6 +542,15 @@
                 requestAnimationFrame(this.renderLoop.bind(this));
             }
 
+            // SAFETY WATCHDOG: Ensure game state is clean if all reels are visibly stopped
+            checkSafetyReset() {
+                const allReelsStopped = this.reelState.every(s => s === 'STOPPED');
+                if (allReelsStopped && this.isSpinning) {
+                    this.isSpinning = false;
+                    this.updateUI();
+                }
+            }
+
             initCanvas() {
                 const rect = this.reelsCanvas.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
@@ -556,9 +565,15 @@
             bindEvents() {
                 window.addEventListener('resize', () => this.initCanvas());
 
-                // BET Buttons
-                document.getElementById('insert-1-btn').addEventListener('click', () => this.addBet(1));
-                document.getElementById('maxbet-btn').addEventListener('click', () => this.maxBet());
+                // BET Buttons with Safety Reset Check
+                document.getElementById('insert-1-btn').addEventListener('click', () => {
+                    this.checkSafetyReset();
+                    this.addBet(1);
+                });
+                document.getElementById('maxbet-btn').addEventListener('click', () => {
+                    this.checkSafetyReset();
+                    this.maxBet();
+                });
 
                 // Repay Loan
                 document.getElementById('repay-btn').addEventListener('click', () => this.repayLoan());
@@ -566,6 +581,7 @@
                 // Spin Lever
                 document.getElementById('spin-btn').addEventListener('click', () => {
                     this.audio.init();
+                    this.checkSafetyReset();
                     this.startSpin();
                 });
 
@@ -601,11 +617,12 @@
                     document.getElementById('paytable-modal').classList.add('hidden');
                 });
 
-                // Keyboard Controls
+                // Keyboard Controls with Fail-Safe Reset
                 window.addEventListener('keydown', (e) => {
                     if (e.code === 'Space') {
                         e.preventDefault();
                         this.audio.init();
+                        this.checkSafetyReset();
                         if (this.currentBet === 0 && !this.isSpinning) {
                             this.maxBet();
                         } else {
@@ -640,6 +657,7 @@
             }
 
             addBet(amount) {
+                this.checkSafetyReset();
                 if (this.isSpinning || this.isReplayFree) return;
                 this.audio.init();
 
@@ -652,6 +670,7 @@
             }
 
             maxBet() {
+                this.checkSafetyReset();
                 if (this.isSpinning || this.isReplayFree) return;
                 this.audio.init();
 
@@ -701,11 +720,17 @@
             }
 
             startSpin() {
+                this.checkSafetyReset();
                 if (this.isSpinning || this.currentBet === 0) return;
 
                 this.isSpinning = true;
                 this.lastWin = 0;
                 this.stoppedSymbols = [null, null, null];
+
+                // リプレイ無料プレイ消費処理
+                if (this.isReplayFree) {
+                    this.isReplayFree = false;
+                }
 
                 this.audio.playLever();
                 if (this.audio.bgmEnabled && !this.audio.bgmTimer) this.audio.startBgm();
@@ -778,87 +803,90 @@
             }
 
             evaluateResult() {
-                this.isSpinning = false;
+                try {
+                    let roleName = 'ハズレ';
+                    let payout = 0;
 
-                let roleName = 'ハズレ';
-                let payout = 0;
+                    const [s1, s2, s3] = this.stoppedSymbols;
 
-                const [s1, s2, s3] = this.stoppedSymbols;
-
-                if (this.internalFlag === 'JACKPOT') {
-                    roleName = '★ JACKPOT ★';
-                    payout = 500;
-                    document.getElementById('jackpot-modal').classList.remove('hidden');
-                    this.audio.playJackpot();
-                } else if (s1 === SYMBOL_TYPES.SEVEN.id && s2 === SYMBOL_TYPES.SEVEN.id && s3 === SYMBOL_TYPES.SEVEN.id) {
-                    roleName = 'BIG BONUS';
-                    payout = 300;
-                    this.currentMode = 'BIG';
-                    this.bonusGamesLeft = 10;
-                } else if (s1 === SYMBOL_TYPES.BAR.id && s2 === SYMBOL_TYPES.BAR.id && s3 === SYMBOL_TYPES.BAR.id) {
-                    roleName = 'REG BONUS';
-                    payout = 100;
-                    this.currentMode = 'REG';
-                    this.bonusGamesLeft = 5;
-                } else if (s1 === SYMBOL_TYPES.SEVEN.id && s2 === SYMBOL_TYPES.SEVEN.id && s3 === SYMBOL_TYPES.BAR.id) {
-                    roleName = 'FEVER MODE';
-                    payout = 15;
-                    this.currentMode = 'FEVER';
-                    this.feverGamesLeft = 15;
-                } else if (s1 === SYMBOL_TYPES.REPLAY.id && s2 === SYMBOL_TYPES.REPLAY.id && s3 === SYMBOL_TYPES.REPLAY.id) {
-                    roleName = 'リプレイ';
-                    this.isReplayFree = true;
-                    payout = 0;
-                } else if (s1 === SYMBOL_TYPES.WATERMELON.id && s2 === SYMBOL_TYPES.WATERMELON.id && s3 === SYMBOL_TYPES.WATERMELON.id) {
-                    roleName = 'スイカ';
-                    payout = 10;
-                } else if (s1 === SYMBOL_TYPES.BELL.id && s2 === SYMBOL_TYPES.BELL.id && s3 === SYMBOL_TYPES.BELL.id) {
-                    roleName = 'ベル';
-                    payout = 8;
-                } else if (s1 === SYMBOL_TYPES.CHERRY.id) {
-                    roleName = 'チェリー';
-                    payout = 4;
-                }
-
-                // Manage FEVER & BONUS Decrement
-                if (this.currentMode === 'FEVER') {
-                    this.feverGamesLeft--;
-                    if (this.feverGamesLeft <= 0) this.currentMode = 'NORMAL';
-                } else if (this.currentMode === 'BIG' || this.currentMode === 'REG') {
-                    this.bonusGamesLeft--;
-                    if (this.bonusGamesLeft <= 0) this.currentMode = 'NORMAL';
-                }
-
-                this.lastWin = payout;
-                this.credits += payout;
-
-                // Replay automatic BET setup
-                if (this.isReplayFree) {
-                    this.currentBet = 3;
-                } else {
-                    this.currentBet = 0;
-                }
-
-                // Sound & Effects
-                if (roleName.includes('BONUS') || roleName.includes('FEVER')) {
-                    this.audio.playJackpot();
-                    document.getElementById('cabinet-container').classList.add('shake-effect');
-                    setTimeout(() => document.getElementById('cabinet-container').classList.remove('shake-effect'), 400);
-                } else if (payout > 0 || this.isReplayFree) {
-                    this.audio.playWin();
-                }
-
-                // Check Bankruptcy
-                if (this.credits <= 0 && this.currentBet === 0 && !this.isReplayFree) {
-                    if (!this.loanTaken) {
-                        document.getElementById('bankrupt-modal').classList.remove('hidden');
-                    } else {
-                        alert('所持メダルが0枚になりました（借金適用済み）。');
+                    if (this.internalFlag === 'JACKPOT') {
+                        roleName = '★ JACKPOT ★';
+                        payout = 500;
+                        document.getElementById('jackpot-modal').classList.remove('hidden');
+                        this.audio.playJackpot();
+                    } else if (s1 === SYMBOL_TYPES.SEVEN.id && s2 === SYMBOL_TYPES.SEVEN.id && s3 === SYMBOL_TYPES.SEVEN.id) {
+                        roleName = 'BIG BONUS';
+                        payout = 300;
+                        this.currentMode = 'BIG';
+                        this.bonusGamesLeft = 10;
+                    } else if (s1 === SYMBOL_TYPES.BAR.id && s2 === SYMBOL_TYPES.BAR.id && s3 === SYMBOL_TYPES.BAR.id) {
+                        roleName = 'REG BONUS';
+                        payout = 100;
+                        this.currentMode = 'REG';
+                        this.bonusGamesLeft = 5;
+                    } else if (s1 === SYMBOL_TYPES.SEVEN.id && s2 === SYMBOL_TYPES.SEVEN.id && s3 === SYMBOL_TYPES.BAR.id) {
+                        roleName = 'FEVER MODE';
+                        payout = 15;
+                        this.currentMode = 'FEVER';
+                        this.feverGamesLeft = 15;
+                    } else if (s1 === SYMBOL_TYPES.REPLAY.id && s2 === SYMBOL_TYPES.REPLAY.id && s3 === SYMBOL_TYPES.REPLAY.id) {
+                        roleName = 'リプレイ';
+                        this.isReplayFree = true;
+                        payout = 0;
+                    } else if (s1 === SYMBOL_TYPES.WATERMELON.id && s2 === SYMBOL_TYPES.WATERMELON.id && s3 === SYMBOL_TYPES.WATERMELON.id) {
+                        roleName = 'スイカ';
+                        payout = 10;
+                    } else if (s1 === SYMBOL_TYPES.BELL.id && s2 === SYMBOL_TYPES.BELL.id && s3 === SYMBOL_TYPES.BELL.id) {
+                        roleName = 'ベル';
+                        payout = 8;
+                    } else if (s1 === SYMBOL_TYPES.CHERRY.id) {
+                        roleName = 'チェリー';
+                        payout = 4;
                     }
-                }
 
-                this.addHistoryLog(roleName, payout);
-                this.updateUI();
+                    // Manage FEVER & BONUS Decrement
+                    if (this.currentMode === 'FEVER') {
+                        this.feverGamesLeft--;
+                        if (this.feverGamesLeft <= 0) this.currentMode = 'NORMAL';
+                    } else if (this.currentMode === 'BIG' || this.currentMode === 'REG') {
+                        this.bonusGamesLeft--;
+                        if (this.bonusGamesLeft <= 0) this.currentMode = 'NORMAL';
+                    }
+
+                    this.lastWin = payout;
+                    this.credits += payout;
+
+                    // 次ゲームへのBET状態初期化保証
+                    if (this.isReplayFree) {
+                        this.currentBet = 3; // リプレイ時は次回自動3BET
+                    } else {
+                        this.currentBet = 0; // 通常は0リセットで手動BETへ
+                    }
+
+                    // Sound & Effects
+                    if (roleName.includes('BONUS') || roleName.includes('FEVER')) {
+                        this.audio.playJackpot();
+                        document.getElementById('cabinet-container').classList.add('shake-effect');
+                        setTimeout(() => document.getElementById('cabinet-container').classList.remove('shake-effect'), 400);
+                    } else if (payout > 0 || this.isReplayFree) {
+                        this.audio.playWin();
+                    }
+
+                    // Check Bankruptcy
+                    if (this.credits <= 0 && this.currentBet === 0 && !this.isReplayFree) {
+                        if (!this.loanTaken) {
+                            document.getElementById('bankrupt-modal').classList.remove('hidden');
+                        } else {
+                            alert('所持メダルが0枚になりました（借金適用済み）。');
+                        }
+                    }
+
+                    this.addHistoryLog(roleName, payout);
+                } finally {
+                    // ALWAYS GUARANTEE CRITICAL STATE RESET
+                    this.isSpinning = false;
+                    this.updateUI();
+                }
             }
 
             addHistoryLog(roleName, winAmount) {
@@ -889,6 +917,11 @@
             }
 
             updateUI() {
+                // Ensure UI reflects clean IDLE state if reels are physically stopped
+                if (this.reelState.every(s => s === 'STOPPED')) {
+                    this.isSpinning = false;
+                }
+
                 document.getElementById('credit-display').innerText = this.credits;
                 document.getElementById('bet-display').innerText = this.isReplayFree ? 'REPLAY' : this.currentBet;
                 document.getElementById('win-display').innerText = this.lastWin;
@@ -955,6 +988,9 @@
                 if (this.isSpinning) {
                     document.getElementById('role-display').innerText = '回転中...';
                     document.getElementById('win-banner').innerText = 'ストップボタンを押してください';
+                } else {
+                    document.getElementById('role-display').innerText = this.lastWin > 0 ? `WIN! (${this.lastWin}枚)` : '待機中';
+                    document.getElementById('win-banner').innerText = '1, 2, 3 BET してスタート';
                 }
             }
 

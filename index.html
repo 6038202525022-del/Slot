@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MEGA SLOT - 本格パチスロ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=M+PLUS+1p:wght@700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'M PLUS 1p', sans-serif;
+            background: radial-gradient(circle at center, #1b0a2e 0%, #08020f 100%);
+            color: #ffffff;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow-x: hidden;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+        }
+
+        /* FEVER MODE BACKGROUND */
+        body.fever-mode {
+            background: radial-gradient(circle at center, #4c0519 0%, #0f0206 100%);
+        }
+
+        .font-digital {
+            font-family: 'Orbitron', monospace;
+        }
+
+        .gold-title {
+            background: linear-gradient(180deg, #fff7ad 0%, #ffa900 50%, #9e5b00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.5));
+        }
+
+        .fever-title {
+            background: linear-gradient(180deg, #ff99dd 0%, #ff00a0 50%, #7a0047 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 10px rgba(255, 0, 160, 0.8));
+        }
+
+        .arcade-cabinet {
+            background: linear-gradient(180deg, #2a1147 0%, #17082b 40%, #0d0417 100%);
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.35), inset 0 0 20px rgba(255, 255, 255, 0.1);
+            transition: border-color 0.4s ease;
+        }
+        .arcade-cabinet.fever-border {
+            border-color: #ff007f !important;
+            box-shadow: 0 0 60px rgba(255, 0, 128, 0.5), inset 0 0 25px rgba(255, 0, 128, 0.2);
+        }
+
+        /* LED Lamp Indicator */
+        .led-lamp {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #260f38;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+            transition: all 0.15s ease;
+        }
+        .led-lamp.active-red { background-color: #ff0055; box-shadow: 0 0 12px #ff0055, 0 0 20px #ff0055; }
+        .led-lamp.active-gold { background-color: #ffcc00; box-shadow: 0 0 12px #ffcc00, 0 0 20px #ffcc00; }
+        .led-lamp.active-blue { background-color: #00e5ff; box-shadow: 0 0 12px #00e5ff, 0 0 20px #00e5ff; }
+
+        /* Arcade Buttons */
+        .btn-3d {
+            position: relative;
+            transition: all 0.08s ease;
+            box-shadow: 0 6px 0 var(--shadow-color), 0 8px 15px rgba(0,0,0,0.6);
+        }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--shadow-color), 0 3px 6px rgba(0,0,0,0.6);
+        }
+        .btn-3d:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(80%);
+            box-shadow: 0 2px 0 var(--shadow-color);
+        }
+
+        .btn-red { --shadow-color: #7a001e; background: linear-gradient(180deg, #ff2a5f 0%, #b3002d 100%); }
+        .btn-gold { --shadow-color: #7a5400; background: linear-gradient(180deg, #ffcf33 0%, #b38600 100%); color: #111; }
+        .btn-blue { --shadow-color: #004b7a; background: linear-gradient(180deg, #33b5ff 0%, #0066b3 100%); }
+        .btn-purple { --shadow-color: #4c007a; background: linear-gradient(180deg, #b533ff 0%, #6600b3 100%); }
+        .btn-stop { --shadow-color: #333; background: linear-gradient(180deg, #ffffff 0%, #a8a8a8 100%); color: #111; }
+
+        /* Rubber Stamp Effect for Bankruptcy */
+        .stamp-text {
+            color: #ef4444;
+            border: 6px solid #ef4444;
+            padding: 8px 24px;
+            font-size: 3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-radius: 16px;
+            transform: rotate(-12deg) scale(1);
+            display: inline-block;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            animation: stampBounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes stampBounce {
+            0% { transform: rotate(-12deg) scale(3); opacity: 0; }
+            100% { transform: rotate(-12deg) scale(1); opacity: 1; }
+        }
+
+        /* Vibration Shock for Reel Stop */
+        @keyframes reelShock {
+            0% { transform: translateY(0); }
+            30% { transform: translateY(3px); }
+            70% { transform: translateY(-2px); }
+            100% { transform: translateY(0); }
+        }
+        .reel-shock {
+            animation: reelShock 0.1s ease-out;
+        }
+
+        /* Screen Shake for Big Bonus */
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-5px, 4px); }
+            40% { transform: translate(5px, -4px); }
+            60% { transform: translate(-4px, -3px); }
+            80% { transform: translate(4px, 3px); }
+        }
+        .shake-effect {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
+
+    <!-- Top Navigation Header -->
+    <header class="w-full max-w-4xl flex justify-between items-center mb-3 px-4 py-2.5 bg-purple-950/70 border border-purple-800/50 rounded-xl backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <h1 id="app-title" class="text-2xl sm:text-3xl font-black italic tracking-wider gold-title">MEGA SLOT</h1>
+            <span id="mode-badge" class="text-[10px] sm:text-xs px-2.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full font-bold">通常モード</span>
+        </div>
+        <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+            <button id="bgm-toggle-btn" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg border border-purple-600/40 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-music text-purple-400"></i> <span id="bgm-label">BGM ON</span>
+            </button>
+            <button id="paytable-open-btn" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-lg transition flex items-center gap-1 shadow-md">
+                <i class="fa-solid fa-table-list"></i> スペック表
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Cabinet Surface -->
+    <div id="cabinet-container" class="w-full max-w-4xl arcade-cabinet border-4 border-amber-500/40 rounded-3xl p-3 sm:p-5 relative shadow-2xl overflow-hidden">
+        
+        <!-- Cabinet LED Lamps Top Frame -->
+        <div class="flex justify-between items-center mb-3 px-2">
+            <div class="flex gap-2">
+                <div class="led-lamp active-red" id="led-1"></div>
+                <div class="led-lamp active-gold" id="led-2"></div>
+                <div class="led-lamp active-blue" id="led-3"></div>
+            </div>
+            <div class="text-center">
+                <span id="win-banner" class="text-xs sm:text-sm font-black tracking-widest text-amber-300 uppercase">1, 2, 3 BET してスタート</span>
+            </div>
+            <div class="flex gap-2">
+                <div class="led-lamp active-blue" id="led-4"></div>
+                <div class="led-lamp active-gold" id="led-5"></div>
+                <div class="led-lamp active-red" id="led-6"></div>
+            </div>
+        </div>
+
+        <!-- DIGITAL COUNTER BOARD -->
+        <div class="bg-black/90 border-2 border-purple-900/80 rounded-2xl p-2.5 mb-3 grid grid-cols-2 sm:grid-cols-5 gap-2 shadow-inner">
+            <div class="bg-slate-950/80 border border-purple-900/50 rounded-xl p-2 text-center">
+                <div class="text-[10px] text-purple-300 font-bold mb-0.5">所持メダル (CREDIT)</div>
+                <div id="credit-display" class="font-digital text-xl sm:text-2xl text-emerald-400 font-black">1000</div>
+            </div>
+            <div class="bg-slate-950/80 border border-purple-900/50 rounded-xl p-2 text-center">
+                <div class="text-[10px] text-purple-300 font-bold mb-0.5">BET数</div>
+                <div id="bet-display" class="font-digital text-xl sm:text-2xl text-amber-400 font-black">0</div>
+            </div>
+            <div class="bg-slate-950/80 border border-purple-900/50 rounded-xl p-2 text-center">
+                <div class="text-[10px] text-purple-300 font-bold mb-0.5">払い出し (WIN)</div>
+                <div id="win-display" class="font-digital text-xl sm:text-2xl text-rose-500 font-black">0</div>
+            </div>
+            <div class="bg-slate-950/80 border border-purple-900/50 rounded-xl p-2 text-center">
+                <div class="text-[10px] text-purple-300 font-bold mb-0.5">借金 / 返済額</div>
+                <div id="loan-display" class="font-digital text-base sm:text-lg text-red-400 font-bold">0 / 0</div>
+            </div>
+            <div class="bg-slate-950/80 border border-purple-900/50 rounded-xl p-2 text-center col-span-2 sm:col-span-1">
+                <div class="text-[10px] text-purple-300 font-bold mb-0.5">成立役 / 状態</div>
+                <div id="role-display" class="text-xs sm:text-sm text-cyan-300 font-bold h-6 flex items-center justify-center">待機中</div>
+            </div>
+        </div>
+
+        <!-- REEL WINDOW -->
+        <div id="reel-window-frame" class="relative bg-black border-4 border-amber-600/50 rounded-2xl p-2 sm:p-3 mb-4 shadow-2xl">
+            <!-- Center Payline Highlight Overlay -->
+            <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-20 sm:h-24 bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 border-y-2 border-amber-400/80 pointer-events-none z-20 flex justify-between items-center px-2">
+                <div class="text-amber-400 font-black text-xs bg-black/80 px-1 py-0.5 rounded border border-amber-500/50">▶ LINE</div>
+                <div class="text-amber-400 font-black text-xs bg-black/80 px-1 py-0.5 rounded border border-amber-500/50">LINE ◀</div>
+            </div>
+
+            <!-- Canvas Reel Surface -->
+            <div class="w-full h-52 sm:h-64 relative rounded-xl overflow-hidden bg-gradient-to-b from-slate-950 via-zinc-900 to-slate-950 border-2 border-slate-800">
+                <canvas id="reels-canvas" class="w-full h-full block z-10 relative"></canvas>
+            </div>
+        </div>
+
+        <!-- CONTROL PANEL & BUTTONS -->
+        <div class="grid grid-cols-12 gap-2 sm:gap-3 items-center">
+            
+            <!-- Left Panel: Coin Insertion & BET Controls -->
+            <div class="col-span-12 md:col-span-3 flex md:flex-col gap-2 justify-center">
+                <div class="flex gap-1.5 w-full">
+                    <button id="insert-1-btn" class="btn-3d btn-blue flex-1 py-2 sm:py-2.5 rounded-xl font-bold text-xs text-white border border-cyan-300/40 flex flex-col items-center">
+                        <span>1枚BET</span>
+                        <span class="text-[9px] opacity-80">+1</span>
+                    </button>
+                    <button id="maxbet-btn" class="btn-3d btn-gold flex-1 py-2 sm:py-2.5 rounded-xl font-bold text-xs border border-amber-200 flex flex-col items-center">
+                        <span>MAX BET</span>
+                        <span class="text-[9px] opacity-90">3枚賭け</span>
+                    </button>
+                </div>
+                <button id="repay-btn" disabled class="btn-3d btn-purple w-full py-2 rounded-xl font-bold text-xs text-white border border-purple-300/40 flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-hand-holding-dollar text-amber-300"></i> 借金返済 (106枚)
+                </button>
+            </div>
+
+            <!-- Center Panel: STOP BUTTONS & START LEVER -->
+            <div class="col-span-12 md:col-span-6 flex flex-col gap-2.5">
+                <!-- STOP BUTTONS -->
+                <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                    <button id="stop-0-btn" disabled class="btn-3d btn-stop h-14 sm:h-16 rounded-2xl font-black text-base sm:text-lg flex flex-col items-center justify-center border-2 border-slate-300">
+                        <span>LEFT</span>
+                        <span class="text-xs text-rose-600 font-digital">[ Z ]</span>
+                    </button>
+                    <button id="stop-1-btn" disabled class="btn-3d btn-stop h-14 sm:h-16 rounded-2xl font-black text-base sm:text-lg flex flex-col items-center justify-center border-2 border-slate-300">
+                        <span>CENTER</span>
+                        <span class="text-xs text-rose-600 font-digital">[ X ]</span>
+                    </button>
+                    <button id="stop-2-btn" disabled class="btn-3d btn-stop h-14 sm:h-16 rounded-2xl font-black text-base sm:text-lg flex flex-col items-center justify-center border-2 border-slate-300">
+                        <span>RIGHT</span>
+                        <span class="text-xs text-rose-600 font-digital">[ C ]</span>
+                    </button>
+                </div>
+
+                <!-- START / LEVER BUTTON -->
+                <button id="spin-btn" disabled class="btn-3d btn-red w-full py-3.5 sm:py-4 rounded-2xl font-black text-lg sm:text-xl text-white tracking-widest border-2 border-rose-300/50 flex items-center justify-center gap-2 shadow-xl">
+                    <i class="fa-solid fa-play"></i>
+                    <span>START / LEVER</span>
+                    <span class="text-xs font-digital bg-black/40 px-2 py-0.5 rounded text-yellow-300">[ SPACE ]</span>
+                </button>
+            </div>
+
+            <!-- Right Panel: Status Info -->
+            <div class="col-span-12 md:col-span-3 flex md:flex-col gap-2 justify-center items-center">
+                <div class="w-full bg-slate-950/80 p-2.5 rounded-xl border border-purple-900/60 text-xs">
+                    <div class="text-purple-300 font-bold mb-1"><i class="fa-solid fa-bolt text-yellow-400"></i> FEVER残り</div>
+                    <div id="fever-count-display" class="font-digital text-xl text-amber-300 font-bold text-center">---</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY LOG TABLE -->
+        <div class="mt-3 pt-3 border-t border-purple-900/60">
+            <div class="text-xs text-purple-300 font-bold mb-1 flex justify-between items-center">
+                <span><i class="fa-solid fa-clock-rotate-left"></i> プレイ履歴 (LOG)</span>
+                <span class="text-[10px] text-slate-400">直近10ゲーム</span>
+            </div>
+            <div id="history-list" class="h-16 overflow-y-auto text-xs space-y-1 font-mono bg-slate-950/60 p-2 rounded-xl border border-purple-950">
+                <div class="text-slate-500 italic text-[11px]">メダルをBETしてスタートレバーを押してください。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BANKRUPTCY MODAL -->
+    <div id="bankrupt-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-gradient-to-b from-slate-900 to-red-950 border-4 border-red-600 rounded-3xl p-6 max-w-md w-full text-center relative shadow-2xl">
+            <div class="mb-4">
+                <div class="stamp-text">倒産！！</div>
+            </div>
+            <h3 class="text-xl font-black text-white mb-2">所持メダルがなくなりました</h3>
+            <p class="text-xs text-red-200 mb-5 leading-relaxed">
+                救済措置として、1回限定でメダルを借金できます。<br>
+                返済条件をご確認のうえ借金ボタンを押してください。
+            </p>
+            <div class="bg-black/60 p-3 rounded-xl border border-red-800/60 mb-5 text-left text-xs space-y-1">
+                <div class="flex justify-between"><span class="text-slate-400">借金額:</span> <span class="text-white font-bold">100 枚</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">利子:</span> <span class="text-amber-400 font-bold">6 %</span></div>
+                <div class="flex justify-between border-t border-slate-800 pt-1"><span class="text-slate-300">返済総額:</span> <span class="text-emerald-400 font-bold">106 枚</span></div>
+            </div>
+            <button id="take-loan-btn" class="btn-3d btn-gold w-full py-3 rounded-xl font-black text-base border-2 border-amber-300 shadow-lg">
+                <i class="fa-solid fa-coins"></i> 100枚を借金して再起する
+            </button>
+        </div>
+    </div>
+
+    <!-- JACKPOT OVERLAY MODAL -->
+    <div id="jackpot-modal" class="fixed inset-0 bg-black/95 backdrop-blur-lg flex items-center justify-center p-4 z-50 hidden">
+        <div class="text-center space-y-6">
+            <h1 class="text-5xl sm:text-7xl font-black italic tracking-widest text-amber-300 animate-pulse drop-shadow-[0_0_35px_rgba(255,215,0,0.9)]">
+                ★ JACKPOT ★
+            </h1>
+            <div class="text-2xl sm:text-3xl font-bold text-white">
+                超プレミアム大当り成立！！
+            </div>
+            <div class="text-4xl sm:text-6xl font-digital font-black text-emerald-400 animate-bounce">
+                +500 MEDALS
+            </div>
+            <button id="jackpot-close-btn" class="px-8 py-3 bg-gradient-to-r from-amber-500 to-rose-600 text-slate-950 font-black text-lg rounded-2xl border-2 border-white shadow-2xl">
+                獲得する
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: PAYTABLE -->
+    <div id="paytable-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-gradient-to-b from-slate-900 to-purple-950 border-2 border-amber-500/60 rounded-2xl p-5 max-w-lg w-full max-h-[85vh] overflow-y-auto relative shadow-2xl">
+            <button id="paytable-close-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2 class="text-xl font-black gold-title mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-amber-400"></i> スペック & 確立・配当表 (固定)
+            </h2>
+            
+            <div class="space-y-2 text-xs sm:text-sm">
+                <div class="flex justify-between items-center bg-slate-950/80 p-2.5 rounded-xl border border-amber-500/30">
+                    <div>
+                        <span class="text-red-500 font-black text-xl">7 7 7</span>
+                        <div class="font-bold text-amber-300">BIG BONUS</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-digital text-amber-400 font-bold text-base">300枚</div>
+                        <div class="text-[10px] text-slate-400">確率: 1/240</div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-950/80 p-2.5 rounded-xl border border-slate-600">
+                    <div>
+                        <span class="text-slate-100 font-black text-base">BAR BAR BAR</span>
+                        <div class="font-bold text-slate-300">REG BONUS</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-digital text-cyan-300 font-bold text-base">100枚</div>
+                        <div class="text-[10px] text-slate-400">確率: 1/160</div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-950/80 p-2.5 rounded-xl border border-pink-500/50">
+                    <div>
+                        <span class="text-pink-400 font-black text-base">7 7 BAR</span>
+                        <div class="font-bold text-pink-300">FEVER MODE</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-digital text-pink-400 font-bold text-base">15G 高確率突入</div>
+                        <div class="text-[10px] text-slate-400">確率: 1/100</div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-950/80 p-2.5 rounded-xl border border-slate-700">
+                    <div>
+                        <span class="text-yellow-300 text-lg">⭐ ⭐ ⭐</span>
+                        <span class="font-bold ml-1">REPLAY</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-digital text-yellow-300 font-bold text-base">次G BET無料</div>
+                        <div class="text-[10px] text-slate-400">確率: 1/7.3</div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-950/80 p-2.5 rounded-xl border border-slate-700">
+                    <div>
+                        <span class="text-emerald-400 text-lg">🍉 🍉 🍉</span>
+                        <span class="ml-1">スイカ</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-digital text-emerald-400 font-bold text-base">10枚</div>
+                        <div class="text-[10px] text-slate-400">確率: 1/32</div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-950/80 p-2.5 rounded-xl border border-slate-700">
+                    <div>
+                        <span class="text-amber-400 text-lg">🔔 🔔 🔔</span>
+                        <span class="ml-1">ベル</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-digital text-amber-400 font-bold text-base">8枚</div>
+                        <div class="text-[10px] text-slate-400">確率: 1/10</div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-950/80 p-2.5 rounded-xl border border-slate-700">
+                    <div>
+                        <span class="text-rose-500 text-lg">🍒 ANY ANY</span>
+                        <span class="ml-1">チェリー</span>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-digital text-rose-400 font-bold text-base">4枚</div>
+                        <div class="text-[10px] text-slate-400">確率: 1/16</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME ENGINE -->
+    <script>
+        class ArcadeAudio {
+            constructor() {
+                this.ctx = null;
+                this.bgmEnabled = true;
+                this.bgmTimer = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.08, gainVal = 0.12) {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            }
+
+            playCoin() {
+                this.playTone(987.77, 'sine', 0.06, 0.12);
+                setTimeout(() => this.playTone(1318.51, 'sine', 0.1, 0.15), 40);
+            }
+
+            playLever() {
+                this.playTone(300, 'sawtooth', 0.05, 0.15);
+                setTimeout(() => this.playTone(500, 'square', 0.08, 0.12), 30);
+            }
+
+            playReelStop() {
+                this.playTone(200, 'triangle', 0.04, 0.25);
+                this.playTone(100, 'square', 0.05, 0.2);
+            }
+
+            playWin() {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'sine', 0.08, 0.15), idx * 60);
+                });
+            }
+
+            playJackpot() {
+                const arpeggio = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
+                arpeggio.forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'triangle', 0.18, 0.2), idx * 75);
+                });
+            }
+
+            startBgm() {
+                if (this.bgmTimer) clearInterval(this.bgmTimer);
+                if (!this.bgmEnabled) return;
+                const notes = [110, 110, 146.83, 130.81];
+                let step = 0;
+                this.bgmTimer = setInterval(() => {
+                    if (this.bgmEnabled && this.ctx) {
+                        this.playTone(notes[step % notes.length], 'sawtooth', 0.1, 0.02);
+                        step++;
+                    }
+                }, 350);
+            }
+
+            stopBgm() {
+                if (this.bgmTimer) {
+                    clearInterval(this.bgmTimer);
+                    this.bgmTimer = null;
+                }
+            }
+        }
+
+        const SYMBOL_TYPES = {
+            SEVEN:      { id: 0, label: '7', color: '#ff0055', isText: true },
+            BAR:        { id: 1, label: 'BAR', color: '#ffffff', isText: true },
+            REPLAY:     { id: 2, label: '⭐', color: '#fde047', isText: false },
+            BELL:       { id: 3, label: '🔔', color: '#ffcc00', isText: false },
+            WATERMELON: { id: 4, label: '🍉', color: '#10b981', isText: false },
+            CHERRY:     { id: 5, label: '🍒', color: '#f43f5e', isText: false }
+        };
+
+        const REEL_STRIPS = [
+            [0, 3, 5, 2, 4, 2, 1, 3, 2, 5, 4, 3, 2, 0, 3, 2, 4, 1],
+            [2, 0, 3, 4, 2, 1, 5, 3, 2, 4, 2, 0, 3, 5, 2, 1, 4, 3],
+            [3, 4, 0, 2, 3, 1, 2, 5, 4, 3, 2, 0, 5, 2, 1, 3, 4, 2]
+        ];
+
+        class MegaSlotEngine {
+            constructor() {
+                this.reelsCanvas = document.getElementById('reels-canvas');
+                this.ctx = this.reelsCanvas.getContext('2d');
+
+                this.audio = new ArcadeAudio();
+
+                // Financial State
+                this.credits = 1000;
+                this.currentBet = 0;
+                this.lastWin = 0;
+                this.loanTaken = false;
+                this.loanRepaid = false;
+
+                // Game Mode State
+                this.currentMode = 'NORMAL'; // NORMAL, FEVER, BIG, REG
+                this.feverGamesLeft = 0;
+                this.bonusGamesLeft = 0;
+
+                // Reel State
+                this.isSpinning = false;
+                this.isReplayFree = false;
+                this.reelPositions = [0, 0, 0];
+                this.reelSpeeds = [0, 0, 0];
+                this.reelState = ['STOPPED', 'STOPPED', 'STOPPED'];
+                this.targetPositions = [0, 0, 0];
+                this.stoppedSymbols = [null, null, null];
+
+                this.internalFlag = 'MISS';
+
+                this.initCanvas();
+                this.bindEvents();
+                this.updateUI();
+
+                this.lastTimestamp = performance.now();
+                requestAnimationFrame(this.renderLoop.bind(this));
+            }
+
+            initCanvas() {
+                const rect = this.reelsCanvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                this.reelsCanvas.width = rect.width * dpr;
+                this.reelsCanvas.height = rect.height * dpr;
+                this.ctx.scale(dpr, dpr);
+
+                this.width = rect.width;
+                this.height = rect.height;
+            }
+
+            bindEvents() {
+                window.addEventListener('resize', () => this.initCanvas());
+
+                // BET Buttons
+                document.getElementById('insert-1-btn').addEventListener('click', () => this.addBet(1));
+                document.getElementById('maxbet-btn').addEventListener('click', () => this.maxBet());
+
+                // Repay Loan
+                document.getElementById('repay-btn').addEventListener('click', () => this.repayLoan());
+
+                // Spin Lever
+                document.getElementById('spin-btn').addEventListener('click', () => {
+                    this.audio.init();
+                    this.startSpin();
+                });
+
+                // Reel Stops
+                [0, 1, 2].forEach(i => {
+                    document.getElementById(`stop-${i}-btn`).addEventListener('click', () => this.stopReel(i));
+                });
+
+                // Loan Take
+                document.getElementById('take-loan-btn').addEventListener('click', () => {
+                    this.takeLoan();
+                });
+
+                // Jackpot Close
+                document.getElementById('jackpot-close-btn').addEventListener('click', () => {
+                    document.getElementById('jackpot-modal').classList.add('hidden');
+                });
+
+                // BGM Toggle
+                document.getElementById('bgm-toggle-btn').addEventListener('click', () => {
+                    this.audio.init();
+                    this.audio.bgmEnabled = !this.audio.bgmEnabled;
+                    document.getElementById('bgm-label').innerText = this.audio.bgmEnabled ? 'BGM ON' : 'BGM OFF';
+                    if (this.audio.bgmEnabled) this.audio.startBgm();
+                    else this.audio.stopBgm();
+                });
+
+                // Modals
+                document.getElementById('paytable-open-btn').addEventListener('click', () => {
+                    document.getElementById('paytable-modal').classList.remove('hidden');
+                });
+                document.getElementById('paytable-close-btn').addEventListener('click', () => {
+                    document.getElementById('paytable-modal').classList.add('hidden');
+                });
+
+                // Keyboard Controls
+                window.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.audio.init();
+                        if (this.currentBet === 0 && !this.isSpinning) {
+                            this.maxBet();
+                        } else {
+                            this.startSpin();
+                        }
+                    } else if (e.code === 'KeyZ') this.stopReel(0);
+                    else if (e.code === 'KeyX') this.stopReel(1);
+                    else if (e.code === 'KeyC') this.stopReel(2);
+                });
+            }
+
+            takeLoan() {
+                if (this.loanTaken) return;
+                this.audio.init();
+                this.loanTaken = true;
+                this.credits += 100;
+                this.audio.playCoin();
+                document.getElementById('bankrupt-modal').classList.add('hidden');
+                this.updateUI();
+            }
+
+            repayLoan() {
+                if (!this.loanTaken || this.loanRepaid) return;
+                if (this.credits >= 106) {
+                    this.audio.init();
+                    this.credits -= 106;
+                    this.loanRepaid = true;
+                    this.audio.playWin();
+                    alert('借金106枚を完済しました！');
+                    this.updateUI();
+                }
+            }
+
+            addBet(amount) {
+                if (this.isSpinning || this.isReplayFree) return;
+                this.audio.init();
+
+                if (this.currentBet + amount <= 3 && this.credits >= amount) {
+                    this.credits -= amount;
+                    this.currentBet += amount;
+                    this.audio.playCoin();
+                    this.updateUI();
+                }
+            }
+
+            maxBet() {
+                if (this.isSpinning || this.isReplayFree) return;
+                this.audio.init();
+
+                const needed = 3 - this.currentBet;
+                if (needed > 0 && this.credits >= needed) {
+                    this.credits -= needed;
+                    this.currentBet = 3;
+                    this.audio.playCoin();
+                    this.updateUI();
+                }
+            }
+
+            performRNG() {
+                const rand = Math.random();
+
+                // Extremely Rare Jackpot (1/1000)
+                if (rand < 0.001) {
+                    this.internalFlag = 'JACKPOT';
+                    return;
+                }
+
+                if (this.currentMode === 'FEVER') {
+                    // FEVER High Probability State
+                    if (rand < 0.01) this.internalFlag = 'BIG';        // 1/100
+                    else if (rand < 0.02) this.internalFlag = 'REG';   // 1/50
+                    else if (rand < 0.08) this.internalFlag = 'WATERMELON';
+                    else if (rand < 0.20) this.internalFlag = 'BELL';
+                    else if (rand < 0.35) this.internalFlag = 'REPLAY';
+                    else if (rand < 0.50) this.internalFlag = 'CHERRY';
+                    else this.internalFlag = 'MISS';
+                } else if (this.currentMode === 'BIG' || this.currentMode === 'REG') {
+                    // BONUS Mode: Bell High Hit
+                    if (rand < 0.70) this.internalFlag = 'BELL';
+                    else if (rand < 0.90) this.internalFlag = 'REPLAY';
+                    else this.internalFlag = 'CHERRY';
+                } else {
+                    // NORMAL Mode Standard Odds
+                    if (rand < 0.0042) this.internalFlag = 'BIG';          // 1/240
+                    else if (rand < 0.0104) this.internalFlag = 'REG';     // 1/160
+                    else if (rand < 0.0204) this.internalFlag = 'FEVER';   // 1/100
+                    else if (rand < 0.0414) this.internalFlag = 'WATERMELON'; // 1/32
+                    else if (rand < 0.1039) this.internalFlag = 'CHERRY';     // 1/16
+                    else if (rand < 0.2039) this.internalFlag = 'BELL';       // 1/10
+                    else if (rand < 0.3409) this.internalFlag = 'REPLAY';     // 1/7.3
+                    else this.internalFlag = 'MISS';
+                }
+            }
+
+            startSpin() {
+                if (this.isSpinning || this.currentBet === 0) return;
+
+                this.isSpinning = true;
+                this.lastWin = 0;
+                this.stoppedSymbols = [null, null, null];
+
+                this.audio.playLever();
+                if (this.audio.bgmEnabled && !this.audio.bgmTimer) this.audio.startBgm();
+
+                this.performRNG();
+
+                // Moderate Speed
+                const baseSpeed = 16;
+                for (let i = 0; i < 3; i++) {
+                    this.reelState[i] = 'SPINNING';
+                    this.reelSpeeds[i] = baseSpeed;
+                }
+
+                this.updateUI();
+            }
+
+            stopReel(index) {
+                if (this.reelState[index] !== 'SPINNING') return;
+
+                const strip = REEL_STRIPS[index];
+                const stripLen = strip.length;
+                const currentPos = this.reelPositions[index] % stripLen;
+                const baseIdx = Math.floor(currentPos);
+
+                let chosenSlip = 0;
+                let targetIdx = baseIdx;
+
+                // 4-Frame Slip Check (0 to 4 コマスベリ)
+                for (let slip = 0; slip <= 4; slip++) {
+                    const candIdx = (baseIdx + slip) % stripLen;
+                    const candSym = strip[candIdx];
+                    if (this.isValidStop(index, candSym)) {
+                        chosenSlip = slip;
+                        targetIdx = candIdx;
+                        break;
+                    }
+                }
+
+                this.targetPositions[index] = Math.floor(this.reelPositions[index] / stripLen) * stripLen + baseIdx + chosenSlip;
+                this.stoppedSymbols[index] = strip[targetIdx];
+                this.reelState[index] = 'SLIPPING';
+
+                this.audio.playReelStop();
+                
+                const frame = document.getElementById('reel-window-frame');
+                frame.classList.add('reel-shock');
+                setTimeout(() => frame.classList.remove('reel-shock'), 100);
+
+                this.updateUI();
+            }
+
+            isValidStop(reelIdx, symbolId) {
+                const flag = this.internalFlag;
+                if (flag === 'JACKPOT') return symbolId === SYMBOL_TYPES.SEVEN.id;
+                if (flag === 'FEVER') {
+                    if (reelIdx < 2) return symbolId === SYMBOL_TYPES.SEVEN.id;
+                    return symbolId === SYMBOL_TYPES.BAR.id;
+                }
+                if (flag === 'CHERRY' && reelIdx === 0) return symbolId === SYMBOL_TYPES.CHERRY.id;
+                if (flag === 'REPLAY') return symbolId === SYMBOL_TYPES.REPLAY.id;
+                if (flag === 'BELL') return symbolId === SYMBOL_TYPES.BELL.id;
+                if (flag === 'WATERMELON') return symbolId === SYMBOL_TYPES.WATERMELON.id;
+                if (flag === 'BIG') return symbolId === SYMBOL_TYPES.SEVEN.id || symbolId === SYMBOL_TYPES.BELL.id;
+                if (flag === 'REG') return symbolId === SYMBOL_TYPES.BAR.id || symbolId === SYMBOL_TYPES.BELL.id;
+                if (flag === 'MISS') {
+                    if (reelIdx === 0 && symbolId === SYMBOL_TYPES.CHERRY.id) return false;
+                    return true;
+                }
+                return true;
+            }
+
+            evaluateResult() {
+                this.isSpinning = false;
+
+                let roleName = 'ハズレ';
+                let payout = 0;
+
+                const [s1, s2, s3] = this.stoppedSymbols;
+
+                if (this.internalFlag === 'JACKPOT') {
+                    roleName = '★ JACKPOT ★';
+                    payout = 500;
+                    document.getElementById('jackpot-modal').classList.remove('hidden');
+                    this.audio.playJackpot();
+                } else if (s1 === SYMBOL_TYPES.SEVEN.id && s2 === SYMBOL_TYPES.SEVEN.id && s3 === SYMBOL_TYPES.SEVEN.id) {
+                    roleName = 'BIG BONUS';
+                    payout = 300;
+                    this.currentMode = 'BIG';
+                    this.bonusGamesLeft = 10;
+                } else if (s1 === SYMBOL_TYPES.BAR.id && s2 === SYMBOL_TYPES.BAR.id && s3 === SYMBOL_TYPES.BAR.id) {
+                    roleName = 'REG BONUS';
+                    payout = 100;
+                    this.currentMode = 'REG';
+                    this.bonusGamesLeft = 5;
+                } else if (s1 === SYMBOL_TYPES.SEVEN.id && s2 === SYMBOL_TYPES.SEVEN.id && s3 === SYMBOL_TYPES.BAR.id) {
+                    roleName = 'FEVER MODE';
+                    payout = 15;
+                    this.currentMode = 'FEVER';
+                    this.feverGamesLeft = 15;
+                } else if (s1 === SYMBOL_TYPES.REPLAY.id && s2 === SYMBOL_TYPES.REPLAY.id && s3 === SYMBOL_TYPES.REPLAY.id) {
+                    roleName = 'リプレイ';
+                    this.isReplayFree = true;
+                    payout = 0;
+                } else if (s1 === SYMBOL_TYPES.WATERMELON.id && s2 === SYMBOL_TYPES.WATERMELON.id && s3 === SYMBOL_TYPES.WATERMELON.id) {
+                    roleName = 'スイカ';
+                    payout = 10;
+                } else if (s1 === SYMBOL_TYPES.BELL.id && s2 === SYMBOL_TYPES.BELL.id && s3 === SYMBOL_TYPES.BELL.id) {
+                    roleName = 'ベル';
+                    payout = 8;
+                } else if (s1 === SYMBOL_TYPES.CHERRY.id) {
+                    roleName = 'チェリー';
+                    payout = 4;
+                }
+
+                // Manage FEVER & BONUS Decrement
+                if (this.currentMode === 'FEVER') {
+                    this.feverGamesLeft--;
+                    if (this.feverGamesLeft <= 0) this.currentMode = 'NORMAL';
+                } else if (this.currentMode === 'BIG' || this.currentMode === 'REG') {
+                    this.bonusGamesLeft--;
+                    if (this.bonusGamesLeft <= 0) this.currentMode = 'NORMAL';
+                }
+
+                this.lastWin = payout;
+                this.credits += payout;
+
+                // Replay automatic BET setup
+                if (this.isReplayFree) {
+                    this.currentBet = 3;
+                } else {
+                    this.currentBet = 0;
+                }
+
+                // Sound & Effects
+                if (roleName.includes('BONUS') || roleName.includes('FEVER')) {
+                    this.audio.playJackpot();
+                    document.getElementById('cabinet-container').classList.add('shake-effect');
+                    setTimeout(() => document.getElementById('cabinet-container').classList.remove('shake-effect'), 400);
+                } else if (payout > 0 || this.isReplayFree) {
+                    this.audio.playWin();
+                }
+
+                // Check Bankruptcy
+                if (this.credits <= 0 && this.currentBet === 0 && !this.isReplayFree) {
+                    if (!this.loanTaken) {
+                        document.getElementById('bankrupt-modal').classList.remove('hidden');
+                    } else {
+                        alert('所持メダルが0枚になりました（借金適用済み）。');
+                    }
+                }
+
+                this.addHistoryLog(roleName, payout);
+                this.updateUI();
+            }
+
+            addHistoryLog(roleName, winAmount) {
+                const historyList = document.getElementById('history-list');
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+                const logEntry = document.createElement('div');
+                logEntry.className = "flex justify-between items-center py-0.5 border-b border-purple-900/40 text-[11px]";
+                
+                const winText = this.isReplayFree ? 'REPLAY' : `+${winAmount}`;
+                const winClass = winAmount > 0 ? 'text-amber-300 font-bold' : (this.isReplayFree ? 'text-yellow-300 font-bold' : 'text-slate-400');
+
+                logEntry.innerHTML = `
+                    <span class="text-slate-500">${timeStr}</span>
+                    <span class="${winClass}">${roleName}</span>
+                    <span class="font-digital ${winAmount > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${winText}</span>
+                `;
+
+                if (historyList.children[0] && historyList.children[0].classList.contains('italic')) {
+                    historyList.innerHTML = '';
+                }
+                historyList.insertBefore(logEntry, historyList.firstChild);
+
+                while (historyList.children.length > 10) {
+                    historyList.removeChild(historyList.lastChild);
+                }
+            }
+
+            updateUI() {
+                document.getElementById('credit-display').innerText = this.credits;
+                document.getElementById('bet-display').innerText = this.isReplayFree ? 'REPLAY' : this.currentBet;
+                document.getElementById('win-display').innerText = this.lastWin;
+
+                // Mode Badge & Theme Styling
+                const badge = document.getElementById('mode-badge');
+                const title = document.getElementById('app-title');
+                const cabinet = document.getElementById('cabinet-container');
+
+                if (this.currentMode === 'FEVER') {
+                    badge.innerText = 'FEVER MODE';
+                    badge.className = 'text-[10px] sm:text-xs px-2.5 py-0.5 bg-pink-500/20 text-pink-300 border border-pink-500/40 rounded-full font-bold animate-pulse';
+                    document.body.classList.add('fever-mode');
+                    cabinet.classList.add('fever-border');
+                    title.className = 'text-2xl sm:text-3xl font-black italic tracking-wider fever-title';
+                } else if (this.currentMode === 'BIG') {
+                    badge.innerText = 'BIG BONUS';
+                    badge.className = 'text-[10px] sm:text-xs px-2.5 py-0.5 bg-red-500/20 text-red-300 border border-red-500/40 rounded-full font-bold';
+                    document.body.classList.remove('fever-mode');
+                    cabinet.classList.remove('fever-border');
+                    title.className = 'text-2xl sm:text-3xl font-black italic tracking-wider gold-title';
+                } else if (this.currentMode === 'REG') {
+                    badge.innerText = 'REG BONUS';
+                    badge.className = 'text-[10px] sm:text-xs px-2.5 py-0.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded-full font-bold';
+                    document.body.classList.remove('fever-mode');
+                    cabinet.classList.remove('fever-border');
+                    title.className = 'text-2xl sm:text-3xl font-black italic tracking-wider gold-title';
+                } else {
+                    badge.innerText = '通常モード';
+                    badge.className = 'text-[10px] sm:text-xs px-2.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full font-bold';
+                    document.body.classList.remove('fever-mode');
+                    cabinet.classList.remove('fever-border');
+                    title.className = 'text-2xl sm:text-3xl font-black italic tracking-wider gold-title';
+                }
+
+                // Loan Display
+                const loanDisp = document.getElementById('loan-display');
+                if (this.loanTaken && !this.loanRepaid) {
+                    loanDisp.innerText = '100 / 106';
+                } else if (this.loanRepaid) {
+                    loanDisp.innerText = '完済済み';
+                    loanDisp.className = 'font-digital text-xs text-emerald-400 font-bold';
+                } else {
+                    loanDisp.innerText = '0 / 0';
+                }
+
+                // Repay Button State
+                const repayBtn = document.getElementById('repay-btn');
+                repayBtn.disabled = (!this.loanTaken || this.loanRepaid || this.credits < 106 || this.isSpinning);
+
+                // FEVER Count Display
+                document.getElementById('fever-count-display').innerText = (this.currentMode === 'FEVER') ? `${this.feverGamesLeft} G` : '---';
+
+                // Controls
+                document.getElementById('spin-btn').disabled = (this.currentBet === 0 || this.isSpinning);
+
+                [0, 1, 2].forEach(i => {
+                    document.getElementById(`stop-${i}-btn`).disabled = (this.reelState[i] !== 'SPINNING');
+                });
+
+                document.getElementById('insert-1-btn').disabled = (this.isSpinning || this.isReplayFree || this.currentBet >= 3);
+                document.getElementById('maxbet-btn').disabled = (this.isSpinning || this.isReplayFree || this.currentBet >= 3);
+
+                if (this.isSpinning) {
+                    document.getElementById('role-display').innerText = '回転中...';
+                    document.getElementById('win-banner').innerText = 'ストップボタンを押してください';
+                }
+            }
+
+            renderLoop(timestamp) {
+                const dt = Math.min((timestamp - this.lastTimestamp) / 1000, 0.1);
+                this.lastTimestamp = timestamp;
+
+                this.updateReels(dt);
+                this.drawReels();
+
+                requestAnimationFrame(this.renderLoop.bind(this));
+            }
+
+            updateReels(dt) {
+                let allStopped = true;
+
+                for (let i = 0; i < 3; i++) {
+                    const stripLen = REEL_STRIPS[i].length;
+
+                    if (this.reelState[i] === 'SPINNING') {
+                        allStopped = false;
+                        this.reelPositions[i] += this.reelSpeeds[i] * dt;
+                    } else if (this.reelState[i] === 'SLIPPING') {
+                        allStopped = false;
+                        const target = this.targetPositions[i];
+                        const diff = target - this.reelPositions[i];
+
+                        if (diff <= 0.04) {
+                            this.reelPositions[i] = target;
+                            this.reelState[i] = 'STOPPED';
+                        } else {
+                            this.reelPositions[i] += Math.max(diff * 20 * dt, 2.0 * dt);
+                        }
+                    }
+                }
+
+                if (this.isSpinning && allStopped) {
+                    this.evaluateResult();
+                }
+            }
+
+            drawReels() {
+                const ctx = this.ctx;
+                const w = this.width;
+                const h = this.height;
+                const reelW = w / 3;
+                const symH = h / 3;
+
+                ctx.clearRect(0, 0, w, h);
+
+                for (let i = 0; i < 3; i++) {
+                    const strip = REEL_STRIPS[i];
+                    const pos = this.reelPositions[i];
+                    const x = i * reelW;
+
+                    for (let j = -1; j <= 3; j++) {
+                        const symIdx = (Math.floor(pos) + j + strip.length * 100) % strip.length;
+                        const symId = strip[symIdx];
+                        const sym = Object.values(SYMBOL_TYPES).find(s => s.id === symId);
+                        const y = (j - (pos % 1)) * symH;
+
+                        ctx.fillStyle = '#08040d';
+                        ctx.fillRect(x + 2, y + 2, reelW - 4, symH - 4);
+
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const cx = x + reelW / 2;
+                        const cy = y + symH / 2;
+
+                        if (sym.isText) {
+                            if (sym.id === SYMBOL_TYPES.SEVEN.id) {
+                                ctx.font = '900 36px "Orbitron", sans-serif';
+                                ctx.fillStyle = sym.color;
+                                ctx.shadowColor = '#ff0055';
+                                ctx.shadowBlur = 12;
+                                ctx.fillText('7', cx, cy);
+                            } else if (sym.id === SYMBOL_TYPES.BAR.id) {
+                                ctx.fillStyle = '#1e293b';
+                                ctx.strokeStyle = '#ffffff';
+                                ctx.lineWidth = 2.5;
+                                ctx.strokeRect(cx - reelW * 0.32, cy - 13, reelW * 0.64, 26);
+                                ctx.font = '900 15px "Orbitron", sans-serif';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillText('BAR', cx, cy);
+                            }
+                        } else {
+                            ctx.font = '30px "M PLUS 1p", sans-serif';
+                            ctx.fillText(sym.label, cx, cy);
+                        }
+
+                        ctx.restore();
+                    }
+
+                    ctx.strokeStyle = '#331952';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        window.addEventListener('load', () => {
+            window.megaSlotEngine = new MegaSlotEngine();
+        });
+    </script>
+</body>
+</html>
